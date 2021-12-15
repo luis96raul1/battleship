@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export default function PostGame(){
+export default function Scores(){
   return (
     <>
       <div>Soy postgame</div>
