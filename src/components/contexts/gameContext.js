@@ -4,7 +4,7 @@ export const TurnContext = createContext();
 export const BoardContext = createContext();
 
 export const GameProvider = ({ children }) => {
-  const [turns, setTurns] = useState('cantidad de turnos');
+  const [turns, setTurns] = useState('');
   const [board, setBoard] = useState();
 
   return(

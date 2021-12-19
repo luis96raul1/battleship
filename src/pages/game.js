@@ -4,26 +4,8 @@ import styled from "@emotion/styled";
 import { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TurnContext, BoardContext } from '../components/contexts/gameContext';
-import Logo from "../static/images/gameLogo.png";
+import Header from '../components/header';
 
-const Header = styled.div`
-  background: linear-gradient(to bottom, #E54F1B, #9D3201);
-  width: 100%;
-  height: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  position: fixed;
-  top: 0;
-  left: 0;
-  color: white;
-  font-size: 1.5rem;
-  a {
-    margin: 0;
-    margin-right: 20px;
-  }
-`
 const BoardField = styled.div`
   display: grid;
   grid-template-columns: repeat(10, 1fr);
@@ -31,6 +13,10 @@ const BoardField = styled.div`
   grid-gap: 0.6rem;
   height: 70vh;
   width: 70vh;
+#sunken{
+  cursor: default;
+  background: black;
+}
 #failed{
   cursor: default;
   background: green;
@@ -71,45 +57,64 @@ export default function Game(){
   const {turns, setTurns} = useContext(TurnContext);
   const [ status, setStatus ] = useState('');
   const [ turnMemory ] = useState(turns);
-  const [ sunkenShips, setSunkenShips ] = useState(0);
+  const [ sunkenShips, setSunkenShips ] = useState({});
+  const sample = {'Nave de batalla':4,'Crucero':3,'Destructor':2,'Submarino':1};
+  const axisSample = {0:'a',1:'b',2:'c',3:'d',4:'e',5:'f',6:'g',7:'h',8:'i',9:'j'};
+  const axisReversed = {'a':0,'b':1,'c':2,'d':3,'e':4,'f':5,'g':6,'h':7,'i':8,'j':9};
 
   useEffect(()=>{
     if(turns === 0){
       setStatus('Game Over');
     }
-    if(sunkenShips === 20){
-      setStatus('Ganaste!');
+    const keys = Object.keys(sunkenShips);
+    keys.forEach(ship=>{
+      if(sunkenShips[ship].size === sample[ship.slice(0,-2)]){
+        sunkenShips[ship].position.posX.forEach((x,i)=>{
+          const container = document.getElementsByClassName(`${x} ${sunkenShips[ship].position.posY[i]}`)[0];
+          container.setAttribute('id','sunken');
+          setStatus(`${ship.slice(0,-2)} hundido`)
+          setSunkenShips({...sunkenShips,[ship]:{...sunkenShips[ship],size:-1}});
+        });
+      }
+    })
+    if(keys.length === 10){
+      if(keys.every(ship=>sunkenShips[ship].size === -1)){
+        setStatus('Ganaste!');
+      }
     }
-  },[sunkenShips,turns])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[sunkenShips, turns])
 
   function BoxHandler(e){
-    console.log(board);
     const xIndex = e.target.className[0];
     const yIndex = e.target.className[2];
-    const box = board[+xIndex][+yIndex];
-    if(!e.target.id && turns !== 0){
+    const box = board[axisReversed[xIndex]][+yIndex];
+    if(!e.target.id && turns !== 0&& !(status==="Ganaste!")){
       if(box==='w'){
         e.target.setAttribute('id', 'failed');
         setStatus('Fallaste!');
       }else{
-        setSunkenShips(sunkenShips+1);
         e.target.setAttribute('id', 'colission');
-        const boxArray = box.split(' ');
-        boxArray.pop();
-        setStatus(`Impacto en ${boxArray.length > 1 ? boxArray.join(' ') : boxArray}`);
+          if(sunkenShips[box]){
+            setSunkenShips({...sunkenShips,[box]:{'size':sunkenShips[box].size+1,'position':{'posX':[...sunkenShips[box].position.posX,xIndex],'posY':[...sunkenShips[box].position.posY,yIndex]}}});
+          }else{
+            setSunkenShips({...sunkenShips,[box]:{'size':1,'position':{'posX':[xIndex],'posY':[yIndex]}}});
+          }
+        setStatus(`Impacto en ${box.slice(0,-2)}`);
       }
       setTurns(turns-1);
     }
   }
+  function saveData(e){
+    e.preventDefault();
+    console.log(e.target.name.value);
+    localStorage.getItem('users')?localStorage.setItem('users',JSON.stringify([...JSON.parse(localStorage.getItem('users')),{'name':e.target.name.value}])):localStorage.setItem('users',JSON.stringify([{'name':e.target.name.value}]));
+  }
   return(
     <>
-    <Header>
-      <img css={css`cursor: pointer;`} onClick={()=>window.location.replace('/')} height='50' src={Logo} alt='img'/>
-      <div>Turnos: {turns<0?'Infinitos':turns}</div>
-      <Link to="/config" onClick={()=>setTurns(turnMemory)}>Atrás</Link>
-    </Header>
     {board?
       <> 
+      <Header turns={turns} setTurns={setTurns} turnMemory={turnMemory} place='/config' name='Atrás'/>
         <Information>
           <div css={css`background:blue;`}>Agua</div>
           <div css={css`background:green;`}>Tiro fallido</div>
@@ -118,14 +123,24 @@ export default function Game(){
         </Information>
         <Status>{status}</Status>
         <BoardField className="board">
-          {board.map((element,indexX)=>element.map((item,indexY)=><Box key={`${indexX} ${indexY}`} className={`${indexX} ${indexY}`} onClick={(e)=>BoxHandler(e)}></Box>))}
+          {board.map((element,indexX)=>element.map((item,indexY)=><Box key={`${indexX} ${indexY}`} className={`${axisSample[indexX]} ${indexY}`} onClick={(e)=>BoxHandler(e)}></Box>))}
         </BoardField>
         {(status === 'Game Over'||status==='Ganaste!') && <Information css={css`left:80%;`}>
           <Link to="/config" onClick={()=>setTurns(turnMemory)}>Volver a jugar</Link>
-          <Link to="/scores">Últimos juegos</Link>
+          <form onSubmit={(e)=>saveData(e)}>
+            <input type="text" name='nickname' placeholder="Nombre" required/>
+            <input type="submit" value="Guardar"/>
+          </form>
           </Information>}
       </>
-      :<div>Intenta volviendo a configuración para iniciar un nuevo juego.</div>}
+      :<div css={css`
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        `}><div>Intenta volviendo a configuración para iniciar un nuevo juego.</div>
+        <Link to="/config" onClick={()=>setTurns(turnMemory)}>Iniciar juego</Link></div>}
     </>
   )
 }
