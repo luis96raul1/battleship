@@ -17,6 +17,7 @@ const cssGlobal = css`
     padding: 0.5rem;
     border-radius: 8px;
     margin-top: 3rem;
+    text-align: center;
     &:hover{
       box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.5);
       cursor: pointer;

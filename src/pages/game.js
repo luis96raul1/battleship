@@ -107,8 +107,8 @@ export default function Game(){
   }
   function saveData(e){
     e.preventDefault();
-    console.log(e.target.name.value);
-    localStorage.getItem('users')?localStorage.setItem('users',JSON.stringify([...JSON.parse(localStorage.getItem('users')),{'name':e.target.name.value}])):localStorage.setItem('users',JSON.stringify([{'name':e.target.name.value}]));
+    localStorage.getItem('users')?localStorage.setItem('users',JSON.stringify([...JSON.parse(localStorage.getItem('users')),{'name':e.target.nickname.value,'turns':turnMemory-turns,'total':turnMemory,'date':new Date().constructor()}])):localStorage.setItem('users',JSON.stringify([{'name':e.target.nickname.value,'turns':turnMemory-turns,'total':turnMemory,'date':new Date().constructor()}]));
+    window.location.replace('/scores')
   }
   return(
     <>
@@ -128,8 +128,17 @@ export default function Game(){
         {(status === 'Game Over'||status==='Ganaste!') && <Information css={css`left:80%;`}>
           <Link to="/config" onClick={()=>setTurns(turnMemory)}>Volver a jugar</Link>
           <form onSubmit={(e)=>saveData(e)}>
-            <input type="text" name='nickname' placeholder="Nombre" required/>
-            <input type="submit" value="Guardar"/>
+            <input css={css`
+              margin-top: 1rem;
+              height: 2rem;
+              border-radius: 4px;
+              border: 1px solid black;
+              `} type="text" name='nickname' placeholder="Nickname" required/>
+            <input css={css`
+              height: 2.2rem;
+              border-radius: 4px;
+              border: 1px solid black;
+              `} type="submit" value="Guardar"/>
           </form>
           </Information>}
       </>
