@@ -26,7 +26,8 @@ export default function Scores(){
       }
       `}>
       <Header place='/config' name='Iniciar juego' name2='none'/>
-      {localStorage.getItem('users') ? JSON.parse(localStorage.getItem('users')).map((score, index) => <UserCard key={index}>
+      {localStorage.getItem('users') ? JSON.parse(localStorage.getItem('users')).map((score, index) =>
+      <UserCard key={index}>
         <Info>{index+1}</Info>
         <Info>{score.name}</Info>
         <Info>{score.turns}/{score.total===-1?'Infinito':score.total}</Info>
@@ -36,7 +37,7 @@ export default function Scores(){
           display: flex;
           align-items: center;
           height: 100%;
-          `}>Aún no hay ningún juego terminado, anímate a poner tu nombre en esta lista.</div>}
+          `}>Aún nadie ha completado un juego, anímate a poner tu nombre en esta lista!</div>}
     </div>
   )
 }

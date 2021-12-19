@@ -52,12 +52,21 @@ const Information = styled.div`
     text-align: center;
   }
 `
+const Legend = styled.div`
+  color: black;
+`
+const Unit = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`
 export default function Game(){
   const { board } = useContext(BoardContext);
   const {turns, setTurns} = useContext(TurnContext);
   const [ status, setStatus ] = useState('');
   const [ turnMemory ] = useState(turns);
   const [ sunkenShips, setSunkenShips ] = useState({});
+  const [ remainingUnites, setRemainingUnites ] = useState({'Nave de batalla':1,'Crucero':2,'Destructor':3,'Submarino':4});
   const sample = {'Nave de batalla':4,'Crucero':3,'Destructor':2,'Submarino':1};
   const axisSample = {0:'a',1:'b',2:'c',3:'d',4:'e',5:'f',6:'g',7:'h',8:'i',9:'j'};
   const axisReversed = {'a':0,'b':1,'c':2,'d':3,'e':4,'f':5,'g':6,'h':7,'i':8,'j':9};
@@ -74,6 +83,7 @@ export default function Game(){
           container.setAttribute('id','sunken');
           setStatus(`${ship.slice(0,-2)} hundido`)
           setSunkenShips({...sunkenShips,[ship]:{...sunkenShips[ship],size:-1}});
+          setRemainingUnites({...remainingUnites,[ship.slice(0,-2)]:remainingUnites[ship.slice(0,-2)]-1});
         });
       }
     })
@@ -120,13 +130,21 @@ export default function Game(){
           <div css={css`background:green;`}>Tiro fallido</div>
           <div css={css`background:red;`}>Tiro certero</div>
           <div css={css`background:black;`}>Unidad abatida</div>
+          <Legend>
+            <div>Unidad/Tamaño/Sin hundir</div>
+            <Unit><div>Nave de batalla</div><div>4</div><div>{remainingUnites['Nave de batalla']}</div></Unit>
+            <Unit><div>Crucero&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div>3</div><div>{remainingUnites['Crucero']}</div></Unit>
+            <Unit><div>Destructor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div>2</div><div>{remainingUnites['Destructor']}</div></Unit>
+            <Unit><div>Submarino&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><div>1</div><div>{remainingUnites['Submarino']}</div></Unit>
+          </Legend>
         </Information>
         <Status>{status}</Status>
         <BoardField className="board">
           {board.map((element,indexX)=>element.map((item,indexY)=><Box key={`${indexX} ${indexY}`} className={`${axisSample[indexX]} ${indexY}`} onClick={(e)=>BoxHandler(e)}></Box>))}
         </BoardField>
-        {(status === 'Game Over'||status==='Ganaste!') && <Information css={css`left:80%;`}>
+        {status === 'Game Over'? <Information css={css`left:80%;`}>
           <Link to="/config" onClick={()=>setTurns(turnMemory)}>Volver a jugar</Link>
+          </Information>:status==='Ganaste!'?<Information css={css`left:80%;`}>
           <form onSubmit={(e)=>saveData(e)}>
             <input css={css`
               margin-top: 1rem;
@@ -140,7 +158,7 @@ export default function Game(){
               border: 1px solid black;
               `} type="submit" value="Guardar"/>
           </form>
-          </Information>}
+          </Information>:null}
       </>
       :<div css={css`
         display: flex;
